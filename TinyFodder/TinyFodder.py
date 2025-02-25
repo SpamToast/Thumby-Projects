@@ -48,8 +48,8 @@ def show_gameboard(player, enemy, player_card, enemy_card): #will be deleted lat
 def battle_setup(player, enemy, player_card, enemy_card):
     #sets up logic & data necessary for battle_step
     cardSpeed = {"2": 1, "3": 2, "4": 3, "5": 4, "6": 5, "Jack": 6, "Queen": 6, "King": 6, "Ace": 7}
-    player_value = player_card.split()[1]
-    enemy_value = enemy_card.split()[1]
+    player_value = player_card.split()[0]
+    enemy_value = enemy_card.split()[0]
 
     if cardSpeed[player_value] > cardSpeed[enemy_value]:
         first, second = player, enemy
@@ -74,9 +74,9 @@ def battle_setup(player, enemy, player_card, enemy_card):
             print(f"⚓ {player.name}, your cabin Boy has retrieved your cannonballs!")
 
         elif choice == 2:
-            destroyed_cannons = [card for card in player.world_of_the_dead if card.split()[1] in ["2", "3", "4", "5", "6"]]
+            destroyed_cannons = [card for card in player.world_of_the_dead if card.split()[0] in ["2", "3", "4", "5", "6"]]
             if destroyed_cannons:
-                repaired_cannon = max(destroyed_cannons, key=lambda x: int(x.split()[1]))
+                repaired_cannon = max(destroyed_cannons, key=lambda x: int(x.split()[0]))
                 player.world_of_the_dead.remove(repaired_cannon)
                 player.DeckofCards.place_under_stack(repaired_cannon)
                 print(f"🔧 {player.name}, your cabin boy has repaired the {repaired_cannon} and placed it under your stack!")
@@ -93,11 +93,11 @@ def battle_setup(player, enemy, player_card, enemy_card):
         print("3: Kraken")
         choice = int(input("Your Choice: "))
 
-        if choice == 1 and "Jack" in [card.split()[1] for card in player.world_of_the_dead]:
+        if choice == 1 and "Jack" in [card.split()[0] for card in player.world_of_the_dead]:
             card_back = next(card for card in player.world_of_the_dead if "Jack" in card)
-        elif choice == 2 and "King" in [card.split()[1] for card in player.world_of_the_dead]:
+        elif choice == 2 and "King" in [card.split()[0] for card in player.world_of_the_dead]:
             card_back = next(card for card in player.world_of_the_dead if "King" in card)
-        elif choice == 3 and "Ace" in [card.split()[1] for card in player.world_of_the_dead]:
+        elif choice == 3 and "Ace" in [card.split()[0] for card in player.world_of_the_dead]:
             card_back = next(card for card in player.world_of_the_dead if "Ace" in card)
         else:
             print("❌ There is no matching Crewmember in the world of the Dead! The Witch disappears...")
@@ -110,13 +110,13 @@ def battle_setup(player, enemy, player_card, enemy_card):
         return "Continue"
 
     elif player_value == "King":
-        print(f"👑 {player.name}'s Captain orders to attack with all bullets!")
-        attack = player.cannonballs  #Fires all Canonballs
+        print(f"👑 {player.name}'s Captain orders to attack with all cannonballs!")
+        attack = player.cannonballs  #Fires all Cannonballs
         result = battle_step(player, enemy, attack, 0)
 
-        #The Captain retrieves all 5 Canonballs, regardless of whether he wins or loses
+        #The Captain retrieves all 5 Cannonballs, regardless of whether he wins or loses
         player.cannonballs = 5
-        print(f"⚓ {player.name}'s Captain has retrieves all Canonballs from the Sea!")
+        print(f"⚓ {player.name}'s Captain has retrieves all Cannonballs from the Sea!")
 
         return result
 
@@ -132,4 +132,4 @@ enemy = Player("Tinybeart", DeckofCards("of Clubs", values))
 
 
 
-show_gameboard(player, enemy, "2 of Hearts", "4 of Clubs")
+show_gameboard(player, enemy, "Jack of Hearts", "4 of Clubs")
