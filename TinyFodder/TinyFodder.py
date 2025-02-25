@@ -131,6 +131,7 @@ player = Player("Cleo", DeckofCards("of Hearts", values))
 enemy = Player("Tinybeart", DeckofCards("of Clubs", values))
 
 
+player.world_of_the_dead = ["Jack of Hearts", "King of Hearts", "Ace of Hearts"]
 
-show_gameboard(player, enemy, "Jack of Hearts", "4 of Clubs")
-battle_setup(player, enemy, "Jack of Hearts", "4 of Clubs")
+show_gameboard(player, enemy, "King of Hearts", "4 of Clubs")
+battle_setup(player, enemy, "King of Hearts", "4 of Clubs")
