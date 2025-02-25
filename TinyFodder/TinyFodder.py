@@ -133,3 +133,4 @@ enemy = Player("Tinybeart", DeckofCards("of Clubs", values))
 
 
 show_gameboard(player, enemy, "Jack of Hearts", "4 of Clubs")
+battle_setup(player, enemy, "Jack of Hearts", "4 of Clubs")
