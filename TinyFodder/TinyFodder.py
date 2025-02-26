@@ -4,8 +4,15 @@ import time
 class DeckofCards:
     def __init__(self, color, values):
         #Creates a Deck of Cards and shuffles
-        self.cards = [f"{color} {value}" for value in values]
-        random.shuffle(self.cards)
+        self.cards = [f"{value} {color}" for value in values]
+        self.shuffle()
+
+    def shuffle(self):
+        # Implementing a Fisher-Yates shuffle algorithm
+        n = len(self.cards)
+        for i in range(n - 1, 0, -1):
+            j = random.randint(0, i)
+            self.cards[i], self.cards[j] = self.cards[j], self.cards[i]
 
     def draw_card(self):
         #Draws top most Card, removes it from the Stack and returns it
@@ -112,26 +119,59 @@ def battle_setup(player, enemy, player_card, enemy_card):
     elif player_value == "King":
         print(f"👑 {player.name}'s Captain orders to attack with all cannonballs!")
         attack = player.cannonballs  #Fires all Cannonballs
-        result = battle_step(player, enemy, attack, 0)
+        #result = battle_step(player, enemy, attack, 0)
 
         #The Captain retrieves all 5 Cannonballs, regardless of whether he wins or loses
         player.cannonballs = 5
         print(f"⚓ {player.name}'s Captain has retrieves all Cannonballs from the Sea!")
 
-        return result
+        #return result
 
     elif player_value == "Ace":
         print("🌊 The Kraken destroys both Cards! 🌊")
         player.world_of_the_dead.append(player_card)
         enemy.world_of_the_dead.append(enemy_card)
         return "Kraken"
+    
+
+def battle_step(attacker, defender, attack, defense):
+    #Starts the battle sequence
+    if attack > attacker.cannonballs:
+        attack= attacker.cannonballs
+
+    if defence > defender.cannonballs:
+        defence = defender.cannonballs
+
+    attacker.cannonballs -= attack
+    defender.cannonballs -= defence
+
+    att_roll, att_rolls = attacker.roll_dice(attack)
+    def_roll, def_rolls = defender.roll_dice(defence)
+
+    print(f"{attacker.name} shoots: {att_rolls} 🎲 Highest Roll: {att_roll}")
+    print(f"{defender.name} shoots: {def_rolls} 🎲 Highest Roll: {def_roll}")
+
+    if att_roll > def_roll:
+        print(f"💥 {defender.name}'s card was destroyed!")
+        defender.world_of_the_dead.append(defender.deck.cards.pop(0))
+    elif att_roll < def_roll:
+        print(f"💥 {attacker.name}'s card was destroyed!")
+        attacker.world_of_the_dead.append(attacker.deck.cards.pop(0))
+    else:
+        print("⚔ Tie! Repeat the fight!")
+        return battle_step(attacker, defender, attack, defence)
+
+    return "End"
 
 values = ["2", "3", "4", "5", "6", "Jack", "Jack", "King", "Ace"]
 player = Player("Cleo", DeckofCards("of Hearts", values))
 enemy = Player("Tinybeart", DeckofCards("of Clubs", values))
 
+while player.deck.has_cards() and enemy.deck.has_cards():
+    player_card = player.deck.draw_card()
+    enemy_card = enemy.deck.draw_card()
 
-player.world_of_the_dead = ["Jack of Hearts", "King of Hearts", "Ace of Hearts"]
+    show_gameboard(player, enemy, player_card, enemy_card)
+    battle_setup(player, enemy, player_card, enemy_card)
 
-show_gameboard(player, enemy, "King of Hearts", "4 of Clubs")
-battle_setup(player, enemy, "King of Hearts", "4 of Clubs")
+print("🎉 Game Over! 🎉")
