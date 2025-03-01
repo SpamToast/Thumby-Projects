@@ -1,177 +1,128 @@
 import random
-import time
-
-class DeckofCards:
-    def __init__(self, color, values):
-        #Creates a Deck of Cards and shuffles
-        self.cards = [f"{value} {color}" for value in values]
-        self.shuffle()
-
-    def shuffle(self):
-        # Implementing a Fisher-Yates shuffle algorithm
-        n = len(self.cards)
-        for i in range(n - 1, 0, -1):
-            j = random.randint(0, i)
-            self.cards[i], self.cards[j] = self.cards[j], self.cards[i]
-
-    def draw_card(self):
-        #Draws top most Card, removes it from the Stack and returns it
-        return self.cards.pop(0) if self.cards else None #returns None if no Cards left
-
-    def place_under_stack(self, card):
-        #places Card under the Stack
-        self.cards.append(card)
-
-    def has_cards(self):
-        #Checks whether the Stack ist not empty
-        return len(self.cards) > 0
 
 class Player:
-    def __init__(self, name, deck):
+    def __init__(self, name, color, values):
         self.name = name
-        self.deck = deck
-        self.cannonballs = 5  #Everybody starts with 5
-        self.world_of_the_dead = []  #Lost cards are stored here
+        self.deck = [f"{value} {color}" for value in values]  # Create deck for the player
+        self.shuffle()  
+        self.cannonballs = 5  
+        self.world_of_the_dead = []  # Stores destroyed cards
 
-    def roll_dice(amount_cannonballs):
-        #throws the amount of dice player and opponent had chosen
+    def shuffle(self):
+        """ Shuffles deck using Fisher-Yates Algorithm """
+        n = len(self.deck)
+        for i in range(n - 1, 0, -1):
+            j = random.randint(0, i)
+            self.deck[i], self.deck[j] = self.deck[j], self.deck[i]
+
+    def draw_card(self):
+        """ Draws top card, removes it from the stack, and returns it """
+        return self.deck.pop(0) if self.deck else None  # Returns None if empty
+
+    def place_under_stack(self, card):
+        """ Places a card (survived fight, repaired, revived) under the stack """
+        self.deck.append(card)
+
+    def has_cards(self):
+        """ Checks if the player has cards left """
+        return len(self.deck) > 0
+
+    def roll_dice(self, amount_cannonballs):
+        """ Rolls the selected number of dice and returns results """
         if amount_cannonballs == 0:
             return 0, []
         diceroll = [random.randint(1,6) for _ in range(amount_cannonballs)]
-        return max(diceroll), diceroll
+        return max(diceroll), diceroll  # Return highest and all rolls
 
-def show_gameboard(player, enemy, player_card, enemy_card): #will be deleted later
-    #shows "background" in letters and Emoji for now. Later sprites
+
+def show_gameboard(player, enemy, player_card, enemy_card):
+    """ Displays the game board with text-based visualization """
     print("\n" + "🌊" * 15)
     print(f"🛳 {enemy.name} is at sea!")
-    print(f"[{enemy_card}] " + "🂠 " * (len(enemy.deck.cards) - 1))
+    print(f"[{enemy_card}] " + "🂠 " * (len(enemy.deck) - 1))
     print("\n" + "-" * 30)
     print(f"🚢 {player.name} sails into battle!")
-    print(f"[{player_card}] " + "🂠 " * (len(player.deck.cards) - 1))
+    print(f"[{player_card}] " + "🂠 " * (len(player.deck) - 1))
     print("\n" + "🌊" * 15)
     print(f"{player.name}: ⚫ {player.cannonballs} cannonballs")
     print(f"{enemy.name}: ⚫ {enemy.cannonballs} cannonballs")
 
+
 def battle_setup(player, enemy, player_card, enemy_card):
-    #sets up logic & data necessary for battle_step
-    cardSpeed = {"2": 1, "3": 2, "4": 3, "5": 4, "6": 5, "Jack": 6, "Queen": 6, "King": 6, "Ace": 7}
-    player_value = player_card.split()[0]
-    enemy_value = enemy_card.split()[0]
+    """ Determines who acts first and how many cannonballs each side fires """
+    try:
+        cardSpeed = {"2": 1, "3": 2, "4": 3, "5": 4, "6": 5, "Jack": 6, "Queen": 6, "King": 6, "Ace": 7}
+        player_value = player_card.split()[0]
+        enemy_value = enemy_card.split()[0]
 
-    if cardSpeed[player_value] > cardSpeed[enemy_value]:
-        first, second = player, enemy
-    elif cardSpeed[enemy_value] < cardSpeed[player_value]:
-        first, second = enemy, player
-    else:print("FEHLER BEI VERGLEICH")
-
-    if player_value in ["2", "3", "4", "5", "6"] and first == player:
-        attack_first = int(input(f"{first.name}, how many cannonballs do you want to fire?"))
-    elif player_value in ["2", "3", "4", "5", "6"] and player_value == enemy_value:
-        print("⚔ Tie! Both of you fire one cannonball!")
-        return battle_step(player, enemy, 1, 1)
-
-    elif player_value == "Jack":
-        print("🛠 The cabin boy is on deck! Choose an action:")
-        print("1: Retrieve all cannonballs from the sea!")
-        print("2: Repair my fastest destroyed cannon!")
-        choice = int(input("Your choice: "))
-
-        if choice == 1:
-            player.cannonballs = 5
-            print(f"⚓ {player.name}, your cabin Boy has retrieved your cannonballs!")
-
-        elif choice == 2:
-            destroyed_cannons = [card for card in player.world_of_the_dead if card.split()[0] in ["2", "3", "4", "5", "6"]]
-            if destroyed_cannons:
-                repaired_cannon = max(destroyed_cannons, key=lambda x: int(x.split()[0]))
-                player.world_of_the_dead.remove(repaired_cannon)
-                player.DeckofCards.place_under_stack(repaired_cannon)
-                print(f"🔧 {player.name}, your cabin boy has repaired the {repaired_cannon} and placed it under your stack!")
-            else:
-                print("❌ No Cannons to repair! Your Cannonballs will be retrieved")
-                player.cannonballs = 5  #automatically if there are no destroyed cannons
-
-            return battle_step(enemy, player, 1, 0)  #enemy attacks automatically with 1 cannonball
-
-    elif player_value == "Queen":
-        print("🧙‍♀️ The Witch brings back the Dead! Choose a Crewmember to revive!:")
-        print("1: Cabin boy")
-        print("2: Captain")
-        print("3: Kraken")
-        choice = int(input("Your Choice: "))
-
-        if choice == 1 and "Jack" in [card.split()[0] for card in player.world_of_the_dead]:
-            card_back = next(card for card in player.world_of_the_dead if "Jack" in card)
-        elif choice == 2 and "King" in [card.split()[0] for card in player.world_of_the_dead]:
-            card_back = next(card for card in player.world_of_the_dead if "King" in card)
-        elif choice == 3 and "Ace" in [card.split()[0] for card in player.world_of_the_dead]:
-            card_back = next(card for card in player.world_of_the_dead if "Ace" in card)
+        # Determine turn order
+        if cardSpeed[player_value] > cardSpeed[enemy_value]:
+            first, second = player, enemy
+        elif cardSpeed[enemy_value] > cardSpeed[player_value]:
+            first, second = enemy, player
         else:
-            print("❌ There is no matching Crewmember in the world of the Dead! The Witch disappears...")
-            return "Queen"
+            print("⚔ Tie! Both of you fire one cannonball!")
+            return player, enemy, 1, 1  # Default to a single cannonball each
 
-        player.world_of_the_dead.remove(card_back)
-        player.deck.place_under_stack(card_back)
-        print(f"💀 {card_back} has been brought back from the Dead!")
+        # First player selects attack
+        max_attack_first = min(first.cannonballs, 5)
+        attack_first = int(input(f"{first.name}, how many cannonballs do you want to fire? (1-{max_attack_first}): "))
 
-        return "Continue"
+        # Second player selects attack
+        max_attack_second = min(second.cannonballs, 5)
+        attack_second = int(input(f"{second.name}, how many cannonballs do you want to fire? (1-{max_attack_second}): "))
 
-    elif player_value == "King":
-        print(f"👑 {player.name}'s Captain orders to attack with all cannonballs!")
-        attack = player.cannonballs  #Fires all Cannonballs
-        #result = battle_step(player, enemy, attack, 0)
+        return first, second, attack_first, attack_second  # Return battle details
 
-        #The Captain retrieves all 5 Cannonballs, regardless of whether he wins or loses
-        player.cannonballs = 5
-        print(f"⚓ {player.name}'s Captain has retrieves all Cannonballs from the Sea!")
+    except ValueError:
+        print("Invalid input! Please enter a number.")
+        return player, enemy, 1, 1  # Default values in case of error
 
-        #return result
-
-    elif player_value == "Ace":
-        print("🌊 The Kraken destroys both Cards! 🌊")
-        player.world_of_the_dead.append(player_card)
-        enemy.world_of_the_dead.append(enemy_card)
-        return "Kraken"
-    
 
 def battle_step(attacker, defender, attack, defense):
-    #Starts the battle sequence
+    """ Executes the combat phase based on chosen cannonballs """
     if attack > attacker.cannonballs:
-        attack= attacker.cannonballs
+        attack = attacker.cannonballs
 
-    if defence > defender.cannonballs:
-        defence = defender.cannonballs
+    if defense > defender.cannonballs:
+        defense = defender.cannonballs
 
     attacker.cannonballs -= attack
-    defender.cannonballs -= defence
+    defender.cannonballs -= defense
 
     att_roll, att_rolls = attacker.roll_dice(attack)
-    def_roll, def_rolls = defender.roll_dice(defence)
+    def_roll, def_rolls = defender.roll_dice(defense)
 
     print(f"{attacker.name} shoots: {att_rolls} 🎲 Highest Roll: {att_roll}")
     print(f"{defender.name} shoots: {def_rolls} 🎲 Highest Roll: {def_roll}")
 
     if att_roll > def_roll:
         print(f"💥 {defender.name}'s card was destroyed!")
-        defender.world_of_the_dead.append(defender.deck.cards.pop(0))
+        defender.world_of_the_dead.append(defender.draw_card())  # Corrected card removal
     elif att_roll < def_roll:
         print(f"💥 {attacker.name}'s card was destroyed!")
-        attacker.world_of_the_dead.append(attacker.deck.cards.pop(0))
+        attacker.world_of_the_dead.append(attacker.draw_card())  # Corrected card removal
     else:
         print("⚔ Tie! Repeat the fight!")
-        return battle_step(attacker, defender, attack, defence)
+        return battle_step(attacker, defender, attack, defense)  # Fixed spelling
 
     return "End"
 
-values = ["2", "3", "4", "5", "6", "Jack", "Jack", "King", "Ace"]
-player = Player("Cleo", DeckofCards("of Hearts", values))
-enemy = Player("Tinybeart", DeckofCards("of Clubs", values))
 
-while player.deck.has_cards() and enemy.deck.has_cards():
-    player_card = player.deck.draw_card()
-    enemy_card = enemy.deck.draw_card()
+# Game Setup
+values = ["2", "3", "4", "5", "6", "Jack", "Queen", "King", "Ace"]
+player = Player("Cleo", "of Hearts", values)
+enemy = Player("Tinybeart", "of Clubs", values)
+
+# Main game loop
+while player.has_cards() and enemy.has_cards():
+    player_card = player.draw_card()
+    enemy_card = enemy.draw_card()
 
     show_gameboard(player, enemy, player_card, enemy_card)
-    battle_setup(player, enemy, player_card, enemy_card)
+
+    first, second, attack, defense = battle_setup(player, enemy, player_card, enemy_card)  # Store battle data
+
+    battle_step(first, second, attack, defense)  # Execute the battle
 
 print("🎉 Game Over! 🎉")
